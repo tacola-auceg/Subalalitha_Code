@@ -1,0 +1,82 @@
+package org.apache.nutch.enconversion.unl.ta;
+import org.apache.nutch.unl.UNL;
+import java.util.*;
+import java.io.*;
+class readobject implements Serializable
+{
+	static TreeSet  tm=new TreeSet();
+	//static 
+	static Hashtable table=new Hashtable();
+	public static void main(String args[])
+	{
+		//System.out.println("hello)");
+		//ArrayList ll_new=new ArrayList();
+		FinalLLImpl [] ll_new=new FinalLLImpl[35000];
+		try
+		{
+			//System.out.println("hello1");
+			FileInputStream fis1=new FileInputStream("./crawl-unl/unlgraph.txt");
+			//System.out.println("hello2");	
+	 		ObjectInputStream ois1=new ObjectInputStream(fis1);					
+         		ll_new=( FinalLLImpl [])ois1.readObject();
+			//System.out.println("hello");
+			//System.out.println("size is"+ll_new.size());
+			//for(int i=0;i<ll_new.size();i++)
+			//{
+			//FinalLLImpl 
+			//System.out.println("Object"+ll_new.get(i));
+                       String str = null;
+                    FinalLLImpl ll[] =ll_new;//(FinalLLImpl[] )ll_new.get(i);
+			
+                     System.out.println("ll.length"+ll.length);
+int counter=0;
+		for(int z=0;z<ll.length;z++){
+                         if(ll[z]!=null) {
+			HeadNode h=new HeadNode();
+                       ConceptNode c=new ConceptNode();
+                       h=ll[z].head;
+                       c=h.colnext; 
+counter++;                       
+                       while(c!=null){
+                         System.out.println("the concepts"+c.gn_word+" "+c.uwconcept+" "+c.docid+" "+c.sentid);
+				str = c.gn_word+":"+c.freq_count;
+				//tm.add(c.gn_word+"	:"+c.freq_count);
+				tm.add(c.uwconcept);
+                         c=c.colnext;
+                        }
+                     // System.out.println("***************end of first object*****************"+counter);
+		}
+		
+			
+		} 
+	/*	Iterator it=tm.iterator();
+		while(it.hasNext())
+		{
+			System.out.println(it.next());
+		}*/
+	//	for(int i=0;i<tm.size();i++)
+	//	System.out.println(tm.get(i));
+	/*	Set s=tm.entrySet();
+		Iterator it=s.iterator();
+		while(it.hasNext())
+		{	
+			Map.Entry me=(Map.Entry)it.next();
+			System.out.println(me.getKey()+"	:"+me.getValue());
+		}*/
+//		System.out.println("Size of tree is "+tm.size());
+//		String tab=tm.toString();
+//		tab.replaceAll(",","\n");
+//		//for(int i=0;i<tm.size();i++)
+		//System.out.println(""+tm.get(i));
+//		System.out.println(" "+tab);	
+		
+		//}
+ 
+	 		ois1.close();
+         		fis1.close(); 
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+		}	
+	}
+}

@@ -1,0 +1,743 @@
+package org.apache.nutch.enconversion.unl.ta;
+import org.apache.nutch.unl.UNL;
+import java.lang.*;
+import java.io.*;
+import java.io.FileOutputStream;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.io.IOException;
+import java.util.logging.FileHandler;
+//import java.io.PrintStream;
+public class FinalAppln implements Serializable,UNL
+{
+public static int docid=0;
+public  static int dociditer=0;
+public static int initialdocid=0;
+public static int finaldociditer=0;
+int sentid=0;
+int no_doc = 0;
+public static String did="";
+public static String docid1="";
+int ctrs = 0;
+String encon_out="";
+public Hashtable get_count =new Hashtable();
+public static Hashtable getcount = new Hashtable();
+org.apache.nutch.enconversion.unl.ta.Rules r=new Rules();
+public static FinalLLImpl[] ll_new = new FinalLLImpl[500000];
+public static Hashtable fileList=new Hashtable();
+public static ArrayList<String> rlist = new ArrayList<String>();
+public static ArrayList<String> flist = new ArrayList<String>();
+ public static FileHandler hand; //= new FileHandler("Exception.log");
+public static Logger log;
+public static 	PrintWriter logwriter;
+public static ArrayList list=new ArrayList();
+public static String[] filename={"unlgraph1.txt","unlgraph2.txt"};
+public static boolean flag = true;
+public static int stfrm;
+public FinalAppln()
+{
+
+
+}
+
+public void start(FinalLLImpl [] ll_new,Hashtable al) throws IOException,ClassNotFoundException
+{
+	//////System.out.println("AL "+al);
+		
+	//Hashtable filename=null;	
+	encon_out="";
+	//try
+	//{
+		String s = "";
+		String s1 = "";
+
+		BufferedReader in = new BufferedReader(new FileReader("./resource/unl/SentenceExtraction/Output/enconinput.txt"));
+		r.loadequ();
+	/*try{	
+	
+	 FileInputStream fis1=new FileInputStream("./crawl-unl/unlgraph.txt");
+	 ObjectInputStream ois1=new ObjectInputStream(fis1);					
+         ll_new=(FinalLLImpl[])ois1.readObject(); 
+	 ois1.close();
+         fis1.close(); 
+	 }catch(Exception e)
+        {
+	   fileList = new Hashtable();	
+	  
+        }	*/
+	try{	
+	
+	 FileInputStream fis=new FileInputStream("./crawl-unl/filelist.txt");
+	 ObjectInputStream ois=new ObjectInputStream(fis);					
+         fileList=(Hashtable)ois.readObject();
+	   ois.close();
+        	   fis.close(); 
+	 }catch(Exception e)
+        {
+	   fileList = new Hashtable();	
+	  
+        }
+        try{
+         BufferedReader in2 = new BufferedReader(new FileReader("./resource/unl/Docid.txt"));
+         String str1 = in2.readLine();
+         if(str1.trim() != null)
+	 	        no_doc = Integer.parseInt(str1) +fileList.size();
+	 else
+	 	no_doc=0;
+	in2.close(); 	        	
+	//graphconstruct(ll_new,al);
+	}catch(Exception e){ no_doc=0;}	
+	
+      
+		String str = ""; 
+		String sent ="", recv="",token="",fn="",temp="";
+		int temp1=0,j=0;
+		FileReader  fr=null;
+		docid = no_doc;
+		initialdocid =no_doc;
+		int incrementalIter=0;
+		//Index  aa1 = new Index();
+
+		while((s=in.readLine())!=null)
+		{ 
+		   //{ 
+		  	fn="./resource/unl/SentenceExtraction/Output/"+s;
+			fileList.put(no_doc+1,fn);			
+			no_doc++;
+			incrementalIter++;
+			StringBuffer docbuff  = new StringBuffer();
+	            	encon_out += "[d]#";
+			
+		       //read sentences from file
+       			fr = new FileReader(fn);
+			StreamTokenizer st = new StreamTokenizer(fr);
+				
+			while(st.nextToken() != st.TT_EOF )
+			{
+				temp ="";
+				temp1=0;
+				if(st.ttype == st.TT_WORD)
+					temp = st.sval;
+				else if(st.ttype == st.TT_NUMBER)
+				{
+					temp1 =(int) st.nval;
+					temp = Integer.toString(temp1);
+				}
+				if(temp != null)					
+				docbuff.append(temp+" ");
+			}	
+		          StringTokenizer sentToken1 = new StringTokenizer(docbuff.toString().trim(),".",false);
+ 	              j=0;    
+	            while(sentToken1.hasMoreTokens())
+        	    {
+           				
+			 sent = sentToken1.nextToken();
+			 recv = r.enconvert(sent);
+			 ////////System.out.println("RECV  " +recv);
+			encon_out +=recv;
+		    }
+
+		encon_out += "[/d]#";
+	//	System.out.println("enconout:"+encon_out);
+
+		fr.close();
+	//	}
+		System.out.println("Docid:"+no_doc);
+		}
+		in.close();
+		graphconstruct(ll_new,al);
+		graphdisp(ll_new); 
+		//writeinObject(ll_new);
+        /**   for(int g=0;g<ll_new.length;g++){
+		HeadNode h=new HeadNode();
+                ConceptNode cv=new ConceptNode();
+                 h=ll_new[g].head;
+                 cv=h.colnext;
+                while(cv!=null){
+		System.out.println("concept after graph construct"+cv.uwconcept+g);
+                 cv=cv.colnext;
+                 }
+             //  if(ll_new[g]==null)
+                 // break;
+                 
+		}*/
+		
+	/*}catch(Exception e)		
+	{
+			
+	 e.printStackTrace();				
+	}*/
+
+  //try
+   // {   	 
+	// FinalLLImpl[] ll = new FinalLLImpl[35000];
+	//list.add(ll_new);
+	/* FileOutputStream fostream=new FileOutputStream("./crawl-unl/unlgraph.txt");
+         ObjectOutput oostream=new ObjectOutputStream(fostream);
+	//ll=getmultilist();
+         oostream.writeObject(ll_new);
+        // oostream.flush(); 
+         oostream.close();ll_new = null;
+							ll_new = new FinalLLImpl[20867];
+							flag = false;
+	fostream.close();*/
+/*   }catch (Exception ex) {
+          	
+      		log.severe("Exception"+ex.getMessage());
+		ex.printStackTrace(logwriter);
+		logwriter.flush();
+        }*/
+//	try
+  //  {   
+
+         FileOutputStream fos=new FileOutputStream("./crawl-unl/filelist.txt");
+         ObjectOutput oos=new ObjectOutputStream(fos);
+         oos.writeObject(fileList);
+         oos.flush(); 
+         oos.close();
+   /*}catch(Exception e)
+   {
+	e.printStackTrace();
+	e.printStackTrace(logwriter);
+	logwriter.flush();	
+	}*/
+
+}
+
+public void graphconstruct(FinalLLImpl [] ll_new,Hashtable al) 
+{
+	String g_word="",concept="",conceptto="",sid="",did="",relnid="",conceptfrm="",ConceptToNode="";
+	String verbword="";		
+	String conentry="";
+	String relnentry="";
+	String word="";
+	int totcon_sent=0;
+	int totrel_sent = 0;
+	//dociditer=0;
+	String fd = "";
+	String fd1 = "";
+	String fldoc = "";
+
+	
+	try
+	{			
+	StringTokenizer strToken = new StringTokenizer(encon_out,"#");
+	String conceptid =" ";
+	int iter=1;
+	while (strToken.hasMoreTokens())
+	{
+		try{
+		word = strToken.nextToken().trim();
+		if(word.equals("[d]"))
+		{
+			
+			ll_new[docid] = new FinalLLImpl();
+		//	dociditer++;
+		//	System.out.println("docid"+docid);
+			fldoc = list.get(docid).toString();
+			StringTokenizer strTok = new StringTokenizer(fldoc,"/");
+			fd1 = strTok.nextToken();
+			fd = strTok.nextToken();
+			fd=fd.replace(".txt","");
+			System.out.println("fd:"+fd);
+			docid++;			
+			get_count =(Hashtable)al.get(fd);
+		//	get_count =(Hashtable)al.get("d"+iter);
+		//	//////System.out.println("sss"+get_count.toString());
+				
+					
+		}
+		else if(word.equals("[s]"))
+		{
+			totcon_sent=0;
+			totrel_sent = 0;
+			sentid++;
+			
+		}
+		else if(word.equals("[/d]"))
+		{
+			sentid=0;
+			iter++;
+		}
+		else if(word.equals("[w]"))
+		{
+				
+			conentry=strToken.nextToken().trim();
+			while(!(conentry.equals("[/w]")))
+			{
+				StringTokenizer	strToken1 = new StringTokenizer(conentry,";");
+				g_word = strToken1.nextToken().trim();
+				concept = strToken1.nextToken().trim()+'('+strToken1.nextToken().trim()+')';
+				verbword = strToken1.nextToken().trim();
+				totcon_sent++;
+				
+				conceptid = strToken1.nextToken().trim();
+				
+				 sid =("s"+sentid);
+				 
+				// did=("d"+docid);
+				did=fd.trim();
+
+				Object str = get_count.get(g_word);
+
+				//ll[dociditer-1].addConcept(g_word,concept,conceptid,did,sid,verbword);
+				if(str != null)
+				{
+					ll_new[docid-1].addConcept(g_word,concept,conceptid,did,sid,verbword,str.toString(),"","");
+				}
+				else
+				{
+					ll_new[docid-1].addConcept(g_word,concept,conceptid,did,sid,verbword,"","","");
+				}
+				
+				conentry=strToken.nextToken().trim();
+				
+			}
+			
+			
+		}
+		
+		else if(word.equals("[r]"))
+		{		
+			relnentry=strToken.nextToken().trim();
+			////////System.out.println(relnentry);
+			while(!(relnentry.equals("[/r]")))
+			{
+				
+				StringTokenizer	strToken2 = new StringTokenizer(relnentry);
+				conceptfrm = strToken2.nextToken().trim();
+				relnid = strToken2.nextToken().trim();
+			
+				conceptto = strToken2.nextToken().trim();
+				
+				
+				
+				 sid =("s"+sentid);
+				// did=("d"+(FinalAppln.initialdocid+iter));
+				did = fd.trim();
+				totrel_sent++;
+			
+				
+				if((!(conceptfrm.equals("None"))) && (!(conceptto.equals("None"))))
+				{
+					
+					ll_new[docid-1].addRelation(relnid);
+	 				ConceptToNode cn = ll_new[docid-1].addCT_Concept(conceptfrm,conceptto,relnid,did,sid);
+					ll_new[docid-1].addCT_Relation(cn);
+				}
+				
+				if(conceptto.equals("None"))
+				{
+					
+				}				
+				relnentry=strToken.nextToken().trim();				
+			}
+			
+		}
+		
+		else
+		{
+			
+		}
+		}
+	catch(Exception e)
+	{
+	e.printStackTrace();	
+	System.out.println("Document is Empty");
+	no_doc++;
+	}
+	}
+  
+
+	
+	}catch(Exception e)
+	  {
+	    e.getStackTrace();	
+	  }
+ 
+ 
+  
+
+}
+public void graphconstruct1(FinalLLImpl [] ll) 
+{
+	String g_word="",concept="",conceptto="",sid="",did="",relnid="",conceptfrm="",ConceptToNode="";
+	String verbword="";
+		
+	String conentry="";
+	String relnentry="";
+	String word="";
+	int totcon_sent=0;
+	int totrel_sent = 0;
+	dociditer=0;
+
+	
+	try
+	{
+			
+	StringTokenizer	strToken = new StringTokenizer(encon_out,"#");
+	String conceptid =" ";
+	int iter=1;
+	while (strToken.hasMoreTokens())
+	{
+		try{
+		word = strToken.nextToken().trim();
+		if(word.equals("[d]"))
+		{
+			
+			ll[dociditer] = new FinalLLImpl();
+			dociditer++;
+			////////System.out.println(dociditer);
+			docid++;			
+			
+		//	//////System.out.println("sss"+get_count.toString());
+					
+					
+		}
+		else if(word.equals("[s]"))
+		{
+			totcon_sent=0;
+			totrel_sent = 0;
+			sentid++;
+			
+		}
+		else if(word.equals("[/d]"))
+		{
+			sentid=0;
+			iter++;
+		}
+		else if(word.equals("[w]"))
+		{
+				
+			conentry=strToken.nextToken().trim();
+			while(!(conentry.equals("[/w]")))
+			{
+				StringTokenizer	strToken1 = new StringTokenizer(conentry,";");
+				g_word = strToken1.nextToken().trim();
+				concept = strToken1.nextToken().trim()+'('+strToken1.nextToken().trim()+')';
+				verbword = strToken1.nextToken().trim();
+				totcon_sent++;
+				
+				conceptid = strToken1.nextToken().trim();
+				
+				 sid =("s"+sentid);
+				 
+				 did=("d"+docid);
+
+		
+				ll[dociditer-1].addConcept(g_word,concept,conceptid,did,sid,verbword,"","","");
+				conentry=strToken.nextToken().trim();
+				
+			}
+			
+			
+		}
+		
+		else if(word.equals("[r]"))
+		{		
+			relnentry=strToken.nextToken().trim();
+			////////System.out.println(relnentry);
+			while(!(relnentry.equals("[/r]")))
+			{
+				
+				StringTokenizer	strToken2 = new StringTokenizer(relnentry);
+				conceptfrm = strToken2.nextToken().trim();
+				relnid = strToken2.nextToken().trim();
+			
+				conceptto = strToken2.nextToken().trim();
+				
+				
+				
+				 sid =("s"+sentid);
+				 did=("d"+(FinalAppln.initialdocid+iter));
+				
+				totrel_sent++;
+			
+				
+				if((!(conceptfrm.equals("None"))) && (!(conceptto.equals("None"))))
+				{
+					
+					ll[dociditer-1].addRelation(relnid);
+					ConceptToNode cn = ll[dociditer-1].addCT_Concept(conceptfrm,conceptto,relnid,did,sid);
+					ll[dociditer-1].addCT_Relation(cn);
+				}
+				
+				if(conceptto.equals("None"))
+				{
+					
+				}
+	  			
+				
+				
+				
+				relnentry=strToken.nextToken().trim();
+				
+				
+			}
+			
+		}
+		
+		else
+		{
+			
+		}
+		}
+	catch(Exception e)
+	{
+	e.printStackTrace();	
+	////////System.out.println("Document is The file /root/out.txt changed on disk.Empty");
+	no_doc++;
+	}
+	}
+  
+
+	
+	}catch(Exception e)
+	  {
+	    e.getStackTrace();	
+	  }
+ 
+ 
+  
+
+}
+
+public FinalLLImpl[] getmultilist()
+{  
+return ll_new;
+}
+public static void graphdisp(FinalLLImpl [] ll_new)
+{
+    	 
+   try
+   {	
+     	
+	int totconcepts=0;
+	
+	for(int i=0;i<docid;i++)
+	{
+		
+		ll_new[i].getCT_Concept();
+		//The file /root/out.txt changed on disk.
+		totconcepts += ll_new[i].Conceptsize();
+		ll_new[i].getCT_Relation();
+		
+	}
+	  }
+  catch(Exception e)
+  {
+  }  
+
+
+	
+}
+  
+
+public static FinalLLImpl[] multilist()
+{
+    
+  try
+  	{
+
+         FileInputStream fos2=new FileInputStream("./crawl-unl/multilist.txt");
+         ObjectInputStream oos2=new ObjectInputStream(fos2);
+	 FinalLLImpl [] ll =(FinalLLImpl [])oos2.readObject();
+         oos2.close();
+         fos2.close();
+         return ll;
+  }
+
+
+  catch(Exception e)
+  {
+    ////////System.out.println(e);
+    return null;
+  }
+  
+
+}
+    
+
+	public static void main(String args[])throws Exception{
+		String str = args[0];
+		
+	//FinalAppln ap=new FinalAppln();	
+	int docid=stfrm;
+	String did="";
+	String fn1 = null;
+	String sendoc = null;
+	String strsen1=null;
+	String strSent=null;
+	//Index in=new Index();
+	Hashtable alnew = new Hashtable();
+	BufferedWriter buf = null;
+	BufferedWriter out = null;
+	BufferedWriter buffer = null;
+	int total_pos=0;
+	int filecount=0;
+	int counter=0;
+	   		 
+	   	try
+	   	{	
+
+	   
+	   		//Invoke Sentence Extraction Module.
+			////System.out.println("Sentence Extraction");
+	  		BufferedReader bufred = new BufferedReader(new FileReader("./resource/unl/SentenceExtraction/Output/nonemptyfiles.txt"));
+			////System.out.println("Buff read:"+bufred);
+	   		out = new BufferedWriter(new FileWriter("./resource/unl/SentenceExtraction/Output/enconinput.txt"));
+	     		String sentStr="";
+	   		String prefix="";
+	   		String suffix="";
+			
+		
+			////System.out.println("Reading the input Files");
+			int incrementalIter =0;
+			FinalAppln docp = new FinalAppln();
+		//	deconversion d=new deconversion(docp);
+			int count=0;	
+	   		while((sentStr=bufred.readLine())!=null)
+			{
+				list.add(sentStr); 
+			}
+			for(int i=stfrm;i<list.size();i++)
+			{
+				try{
+				String rootw1 = null;
+				String occur = null;
+				sentStr=(String)list.get(i);
+			//	System.out.println("SentStr:"+sentStr);
+				StringBuffer docbuff1 = new StringBuffer();
+				fn1 = "./resource/unl/SentenceExtraction/MetaData/"+sentStr;
+				File f = new File(fn1);
+			//	System.out.println("f"+f.exists());
+				FileReader fr1 = new FileReader(f);
+				StreamTokenizer st1 = new StreamTokenizer(fr1);
+				
+					while (st1.nextToken() != st1.TT_EOF) {
+						String temp2 = "";
+						int tempt = 0;
+						if (st1.ttype == st1.TT_WORD)
+							temp2 = st1.sval;
+						else if (st1.ttype == st1.TT_NUMBER) {
+							tempt = (int) st1.nval;
+							temp2 = Integer.toString(tempt);
+						}
+						if (temp2 != null)
+							docbuff1.append(temp2 + " ");
+					}
+				//	System.out.println("docbuff1:"+docbuff1);
+					sendoc = list.get(i).toString();
+					StringTokenizer strTok = new StringTokenizer(sendoc,"/");
+					strSent = strTok.nextToken();
+					strsen1 = strTok.nextToken();
+					strsen1=strsen1.replace(".txt","");
+					StringTokenizer sentToken2 = new StringTokenizer(docbuff1
+							.toString().trim(), " ", false);
+				//	int j = 0;
+					while (sentToken2.hasMoreTokens()) {
+
+						docid1 = strsen1;
+						String sent1 = sentToken2.nextToken();
+					//	System.out.println("sent1:"+sent1);
+				/**		if(sent1.equals("docid")){
+							docid1 = "d"+ sentToken2.nextToken();
+						//	System.out.println("docid1:"+docid1);
+						}	*/
+						if(sent1.equals("rootword")){
+							String rootw = sentToken2.nextToken();
+							if(rootw.equals("occurances")){
+								//rootw = "$";
+								rootw1 ="&";
+							//	rlist.add();
+							//	continue;
+							//	System.out.println("rootw:"+rootw);	
+							}else{
+								rootw1 = rootw; 
+							//	System.out.println("rootw1:"+rootw1);	
+								rlist.add(rootw1);
+							}
+							
+						}
+						else if (sent1.equals("occurances")){
+							occur =	sentToken2.nextToken();
+						//	System.out.println("occur:"+occur);
+							flist.add(occur);
+						}
+					//	getcount.put(rootw1,occur);
+					}
+					for(int k = 0; k<rlist.size();k++){
+						getcount.put(rlist.get(k),flist.get(k));
+					}
+					alnew.put(docid1,getcount);
+				//	System.out.println("al_new:"+alnew);	
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+				
+				out.write(sentStr+"\n");		
+	   			incrementalIter++;
+				if(incrementalIter%100==0)
+				{
+				
+				//docid=0;
+				out.close();	
+				try
+				{		
+			 		docp.start(ll_new,alnew);
+					writeinObject("unlgraph"+filecount+".txt");
+						if(incrementalIter%2000==0)
+						{
+							filecount++;
+							ll_new = null;
+							ll_new = new FinalLLImpl[list.size()];
+							//flag = false;
+						}				
+					else
+					{
+												
+						writeinObject(filename[1]);
+					}
+				}
+				catch(Exception ex)
+				{
+					
+					ex.printStackTrace();
+				}
+				
+	  				System.gc();	   	
+	  				out = new BufferedWriter(new FileWriter("./resource/unl/SentenceExtraction/Output/enconinput.txt"));
+				}
+								 
+	   		}	
+			//writeinObject( );
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+		   
+ 
+		}//main	
+
+public static  void writeinObject( String filename)
+{
+	try
+	{
+		 FileOutputStream fostream=new FileOutputStream("./resource/unl/ta/Enconversion/unl-graph/"+filename);
+         		ObjectOutput oostream=new ObjectOutputStream(fostream);
+			//ll=getmultilist();
+         		oostream.writeObject(ll_new);
+        		// oostream.flush(); 
+         		oostream.close();
+			fostream.close();
+	}catch(Exception e)
+	{
+		e.printStackTrace();
+	}
+}
+ public ArrayList process(String queryString){
+ArrayList arr = null;return arr;}
+
+}

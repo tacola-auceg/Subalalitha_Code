@@ -1,0 +1,677 @@
+package org.apache.nutch.enconversion.unl.ta;
+
+import org.apache.nutch.analysis.unl.ta.Analyser;
+import java.lang.*;
+import java.io.*;
+import java.util.*;
+import java.util.regex.Pattern;
+import java.util.regex.*;
+import java.lang.CharSequence;
+import java.text.*;
+import java.util.regex.Matcher;
+//import clia.unl.unicode.enconverter.Rules;
+
+public class SentExtr
+{
+	public PrintStream ps2;
+	public  ArrayList sent=new ArrayList(); //to store the sentences
+	public   ArrayList root = new ArrayList();	//to store the root word
+	public   ArrayList po_st =  new ArrayList(); // to store the part of sentences
+	
+	public   static Hashtable countCheck = new Hashtable();	
+	public   Hashtable getcountCheck = new Hashtable();	
+	public   Hashtable putdocidcount = new Hashtable();	
+	public    ArrayList wordcount = new ArrayList(); //to store the frequency count
+	public  ArrayList termfreqct = new ArrayList(); //to store the term freq
+	
+	public  ArrayList stop = new ArrayList();	//to store the stop words
+	public  ArrayList impwords=new ArrayList(); // to store the imp words
+	public  int totalwords; //to store the size of root array list
+	
+	public int total_imp_pos; // number of important part of sentences for a document
+	
+	public  String fcount="";
+
+public String s="";
+       
+public SentExtr( ) //empty constructor
+{
+}
+	//function to find the important part of sentences
+	
+public Hashtable impSentExtr(String filename, String did) 
+{
+	//ArrayList frq = new ArrayList();
+	try
+	{
+		
+				
+		/*allout = new PrintStream(new FileOutputStream(new File("/usr/output/allout.txt"),true));	
+		ps3 = new PrintStream(new FileOutputStream(new File("/usr/output/partofst.txt"),true));	
+		ps4 = new PrintStream(new FileOutputStream(new File("/usr/output/info.txt"),true));	
+		unknown = new PrintStream(new FileOutputStream(new File("/usr/output/unknown.txt"),true));*/	
+	
+		String fn="./resource/unl/"+filename;
+
+String list[]={" கி","பி","மீ","ரூ"," பி",".கா","ஏ","ஆர்"," த"," வ","ச","ஜி","ஆ"," டி","எ ",".சா"," சி"," ஜஸ்டிஸ்",".கி"," மு","7467","76","உ","கீ","ஐ","7434"," 2,42,953","35,05","6623"," 1025"," 8848",".சி ","க",".உ"," 33"," 77"," 78"," 79","85", " 8","1","2","3","4","5","6"," 7"," 9"," 32"," 44"," 65"," 59"," 48"," 80"," 56"," 10"," 11"," 12"," 21"," 25"," 26"," 28"," 30"," 31"," 32"," 34"," 35"," 36"," 41"," 54",".ஐ"," 15"," 17"," மி","கெ","ஊ",".சி"," ஈ",".வே",".ரா"," என்"," (கி"," கிலோ"," வ","ஏப்","எஃப்",".என்"," பு",".வி",".டி"," தி",". சா"," எஸ்",".இ",".அ"," வை"," மா"," அரு",".எச்",".எல்"," B",".C",".E",".அரு"," வி","கோ"," St"," E",".V"," எம்"," திருமதி"," திரு",".எஸ்"," இ",".எம்",".ஆர்"," ப",".நோ"," தா",".கூ",".மு"," எம்",".9C(84",".3C(86",".7C(90",".1C(91",".7C(94",".3C(97",".5C(96",".0C(95",".4C(94",".0C(93",".4C(92",".6C(88"};
+
+
+		int k=0;
+		int y=0;
+		
+				
+		FileReader fr=new FileReader(fn);
+		BufferedReader br=new BufferedReader(fr);
+
+		while((s= br.readLine()) != null)
+		{
+			PrintStream allout;
+			Pattern pat = Pattern.compile("[.]");
+			String strs[]=pat.split(s);
+
+		int j= strs.length;
+		for(int i=0;i<j;i++)
+		{			
+				 String element=strs[i];
+				if(element==null||element.length()==0)
+				{
+					continue;
+				}					
+				else
+				{
+					sent.add(k,strs[i]);
+					k++;
+				}				        
+		        } 
+		}
+		//allout.println("Sentences in sent array List:\n"+sent);
+		while(y<sent.size()-1)
+		{
+			String str=sent.get(y)+" ";
+			str=str.trim();
+			int x=0;
+			int flag=0;	
+			while((x<list.length))
+			{
+				if(str.endsWith(list[x])||((str.length()<3)&&(str.length()!=0)))
+				{
+					String str1=sent.get(y+1)+" ";
+					str=str+"."+str1;
+					sent.set(y,str);
+					sent.remove(y+1);
+					flag=1;
+				}
+				x++;
+			}
+			if(flag==0)
+			y++;
+		 }
+		//for(int l=0;l<sent.size();l++)
+		// {
+			//allout.println(sent.get(l));
+		// }			
+		//allout.close();
+	}
+catch(IOException e)
+{
+}		
+				//To read the whole doc and store it in a string Buffer		
+				
+		//////System.out.println("No of Elts in Sentence Arrray List"+sent.size());
+		//allout.println("No of Elts in Sentence Arrray List Before Important Sentence Extraction "+sent.size());
+		//ps4.println(filename);
+		//ps4.println("No of Elts in Sentence Arrray List Before Important Sentence Extraction "+sent.size());
+			
+		 getcountCheck=wordfreqcount(did); // to find the freqency of all root words in a doc
+		findtermfreq();//to find term frequency of all root words in a doc
+			
+		float a=findmax(); // to find the first maximum term freq
+		//////System.out.println("First max freq"+a);
+		
+		getfow(a);//to find the words with first  max term freq
+		
+		
+	//to find the freq occuring words for seocnd max freq 
+		
+		
+		float b=findmax(); // to find the second maximum term freq
+		
+		//////System.out.println("Second max freq"+b);
+		
+		getfow(b); //to find the words with second  max term freq
+			
+							
+		
+//to find the sentences having freq occuring words
+	
+		getfowsent(filename);	
+		//////System.out.println("The get count check inside the sent Extract"+getcountCheck);
+		return getcountCheck;
+}
+	public Hashtable wordfreqcount(String did)
+//	public void wordfreqcount()
+	{
+		int ct=0;
+	//	String fcount="";
+	//	ArrayList cC =  new ArrayList();
+	//ArrayList cgnew=new ArrayList();
+			
+		try
+		{
+	BufferedReader st = new BufferedReader(new FileReader("./resource/unl/tabstop.txt"));
+		
+			//load stop word list from file into array list			
+			//allout.println("Inside word frequency count");
+			String k="";
+			StringBuffer stp =new StringBuffer();
+			while((k=st.readLine())!=null)
+			{
+				 stp.append(k+"\n");
+			}
+			StringTokenizer tok = new StringTokenizer(stp.toString());
+			//////System.out.println(tok.countTokens());
+			while(tok.hasMoreTokens())
+			{
+				String sword = tok.nextToken();
+				stop.add(sword);
+									
+			}
+			
+			//ps1 = new PrintStream(new FileOutputStream(new File("/usr/output/analout1.txt"),true));	
+			//to split doc into words and analyze it
+			
+			for(int p=0;p<sent.size();p++)
+			{
+			
+				String sentstr = sent.get(p).toString().trim();
+				StringTokenizer strToken1 = new StringTokenizer(sentstr," .*?-;',’:\")(!");
+				StringTokenizer strToken2 = null;
+				String res=" ";
+				//allout.println("Sent number"+p);
+				
+				while (strToken1.hasMoreTokens())
+				{	
+					
+					String word = strToken1.nextToken();
+					String word1 = "";
+					String word2 = "";
+					String prev,next;
+					String analysed  = org.apache.nutch.analysis.unl.ta.Analyser.analyseF(word,true);
+					//ps1.println(analysed);
+					strToken2 = new StringTokenizer(analysed, ":\n<>=,*;:?-'\"&",false);
+					
+					if (analysed.indexOf("Adjectival Noun") != -1)
+					{
+					//	allout.println("Inside Adjectival Noun");
+						prev = strToken2.nextToken().trim();
+						word1 = prev;
+						next = strToken2.nextToken().trim();
+						while(!(next.equals("Adjectival Noun")))	
+						{
+							//////System.out.println("inside while");
+							//////System.out.println(next);
+							prev = next;
+							next = strToken2.nextToken().trim();
+						}
+						word2 = prev;
+					}					
+					else if (analysed.indexOf("Interrogative Noun") != -1)
+					{
+					//	allout.println("Inside Interrogative Noun");
+						prev = strToken2.nextToken().trim();
+						word1 = prev;
+						next = strToken2.nextToken().trim();
+						while(!(next.equals("Interrogative Noun")))	
+						{
+							//////System.out.println("inside while");
+							//////System.out.println(next);
+							prev = next;
+							next = strToken2.nextToken().trim();
+						}
+						word2 = prev;
+					}					
+					else if (analysed.indexOf("Non Tamil Noun") != -1)
+					{
+					//	allout.println("Inside Non Tamil Noun");
+						prev = strToken2.nextToken().trim();
+						word1 = prev;
+						next = strToken2.nextToken().trim();
+						while(!(next.equals("Non Tamil Noun")))	
+						{
+							//////System.out.println("inside while");
+							//////System.out.println(next);
+							prev = next;
+							next = strToken2.nextToken().trim();
+						}
+						word2 = prev;
+					}					
+					else if(analysed.indexOf("Noun") != -1) 
+					{
+						//allout.println("Inside Noun");
+						prev = strToken2.nextToken().trim();
+						word1 = prev;
+						next = strToken2.nextToken().trim();
+						while(!(next.equals("Noun")))	
+						{
+							//////System.out.println("inside while");
+							//////System.out.println(next);
+							prev = next;
+							next = strToken2.nextToken().trim();
+						}
+						word2 = prev;	
+					}					
+					else if(analysed.indexOf("Entity") != -1)
+					{
+					//	allout.println("Inside Entity");
+						prev = strToken2.nextToken().trim();
+						word1 = prev;
+						next = strToken2.nextToken().trim();
+						while(!(next.equals("Entity")))	
+						{
+							//////System.out.println("inside while");
+							//////System.out.println(next);
+							prev = next;
+							next = strToken2.nextToken().trim();
+						}
+						word2 = prev;							
+					}					
+					else if(analysed.indexOf("unknown")!= -1)
+					{
+						word1 = strToken2.nextToken().trim();
+						if(word1.length() >=3)
+					//		ps5.println(word1);
+						word2 = word1;
+					}
+					else 
+					{				
+				//		allout.println("Inside Else");
+						word1 = strToken2.nextToken().trim();
+						word2 = strToken2.nextToken().trim();
+					}					
+					res += word1+" ";
+				//	allout.println(res);					
+				//	allout.println("Given Word"+word1);
+				//	allout.println("Root Word"+word2);					
+					if ((analysed.indexOf("Verbal Participle Suffix")!=-1) && (analysed.indexOf("Instrumental Case") ==-1) && (analysed.indexOf("Noun") ==-1) && (analysed.indexOf("Relative Participle Suffix ") ==-1) )
+					{
+						po_st.add(res);
+				//		ps3.println(res);
+						res = " ";
+					}
+					else if ((analysed.indexOf("Dative Case")!=-1)  && (analysed.indexOf("உம்")!=-1))
+					{
+						po_st.add(res);
+				//		ps3.println(res);
+						res = " ";
+					}
+											
+					else if ((analysed.indexOf("Conditional Suffix") != -1) || (analysed.indexOf("Conjunction") != -1))
+					{
+						po_st.add(res);
+				//		ps3.println(res);
+						res = " ";
+					}					
+					else if(word1.indexOf("போது")!= -1)
+					{
+						po_st.add(res);
+				//		ps3.println(res);
+						res = " ";
+					}
+					
+					int b = checkstop(word2); // to check for stop word
+					if(b == 0)
+					{
+						int a = check(word2); // to check whether that root word is already existing
+						if(a==0)
+						{
+							root.add(word2);
+							wordcount.add(new Integer(1));
+						//	allout.println("Size of root"+root.size());
+						}
+					}
+				//	////System.out.println("WC:"+wordcount);
+					totalwords = root.size();
+					//////System.out.println(totalwords);
+				}
+				po_st.add(res);
+		//		ps3.println(res);
+			}
+		//	int ck =0;
+		//	int docid=0;
+			//String docid="d"+did;
+			for(int i=0;i<root.size();i++)
+			{					
+	                      	putdocidcount.put(root.get(i),wordcount.get(i));							
+			}
+			//if(did !=null)			
+			{	
+				countCheck.put(did,putdocidcount);		
+			//	////System.out.println("countCheck: + :"+countCheck);
+			}
+			//	ps = new PrintStream(new FileOutputStream(new File("/usr/output/freqcount1.txt"),true));				
+			//	display();
+					  st.close();
+			}
+
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+		//for(int h=0;h<countCheck.size();h++)
+		//{
+				
+                   /*            fcount=countCheck.toString();
+				////System.out.println("fcount:"+fcount);*/
+			//	Rules.addCount(countCheck);
+
+			//	String some = "HELLO";
+		//}
+	        //////System.out.println("countCheck"+countCheck);
+	      
+		return countCheck;		
+	}
+	
+	public int check(String s)
+	{
+		int cnt=0;
+
+		while(cnt<root.size())
+		{
+			String temp=root.get(cnt).toString();
+			if(temp.equals(s)==true)
+			{
+				addcount(cnt);
+				return 1;
+			}
+			cnt++;
+		}
+		return 0;
+	}
+	
+	
+	//to check whether the given word is in stopword list	
+	public int checkstop(String s)
+	{
+		int cnt=0;
+
+		while(cnt<stop.size())
+		{
+			String temp=stop.get(cnt).toString();
+			if(temp.equals(s)==true)
+			{
+				//addcount(cnt);
+				return 1;
+			}
+			cnt++;
+		}
+		return 0;
+	}
+
+//to increase the freq if the given word is already existing in root word list
+
+	public void addcount(int cnt)
+	{
+		Object temp=wordcount.get(cnt);
+		int t=((Integer)temp).intValue();
+		t=t+1;
+		wordcount.set(cnt,new Integer(t));
+		int t1=((Integer)(wordcount.get(cnt))).intValue();
+	}		
+	//function to find the maximum freq
+
+	public float fow()
+	{
+		int n=0;
+		float t1=0,freq=0;
+		float t2;
+		int maxcnt=1;
+		
+	//	allout.println("Inside find maximum freq");
+		//////System.out.println("No of Count in word Count"+ wordcount.size());
+		while(n<termfreqct.size())
+		{		
+			t2=((Float)(	termfreqct.get(n))).floatValue();
+			if(t1<t2)
+			{
+				maxcnt=n;
+				freq=t2;
+				t1=t2;
+			}
+			n++;
+		}
+		//////System.out.println("Maximum Count is"+freq);
+		return freq;
+	}
+//to write the freq count in a file
+
+	public void display()
+	{
+				
+				int k=0;
+				StringBuffer str=new StringBuffer();
+				StringBuffer str1=new StringBuffer();
+				while(k<totalwords)	
+				{
+					str.append(wordcount.get(k).toString()+"\n");
+					k++;
+				}
+			//	////System.out.println("STR:"+str);
+				int j=0;
+				while(j<totalwords)
+				{
+					str1.append(root.get(j).toString()+"\n");
+					j++;
+				}
+			//	////System.out.println("STR1:"+str1);
+				StringTokenizer strToken1 = new StringTokenizer(str1.toString());
+				StringTokenizer strToken2 = new StringTokenizer(str.toString());
+				while (strToken1.hasMoreTokens() && strToken2.hasMoreTokens())
+				{
+					String word = strToken1.nextToken()+"\t\t\t"+strToken2.nextToken();
+					
+					//ps.println(word);
+				}			
+	}				
+	public void findtermfreq()
+	{
+				
+				int k=0;
+				float totalfreq=0;
+				
+				//allout.println("Inside find term freq");
+				
+			while(k<totalwords)	
+				{
+					float temp = Float.parseFloat(wordcount.get(k).toString().trim());  
+					totalfreq = totalfreq + temp;
+					k++;
+				} 
+				
+			k=0;	
+				while(k<totalwords)	
+				{
+					float temp = Float.parseFloat(wordcount.get(k).toString().trim());  
+					float tf= temp/totalfreq;
+					termfreqct.add(tf);
+					//allout.print("FC"+temp);
+					//allout.println("TF"+tf);
+					k++;
+				}	
+				
+				if(root.indexOf("count")!=-1)
+				{
+					int tempindex = root.indexOf("count");
+					//allout.println("temp index value-count"+tempindex);
+					termfreqct.set(tempindex,new Float(0));
+				}
+		}
+		
+	//function to find the maximum freq
+
+	public float findmax()
+	{
+		int n=0;
+		float t1=0,freq=0;
+		float t2;
+		int maxcnt=1;
+		
+		try
+		{
+			
+		//allout.println("Inside find maximum freq");
+		//allout.println("Term freq"+termfreqct);
+		////System.out.println("No of Count in word Count"+ wordcount.size());
+		while(n<	termfreqct.size())
+		{
+		
+			t2=((Float)(termfreqct.get(n))).floatValue();
+			if(t1<t2)
+			{
+				maxcnt=n;
+				freq=t2;
+				t1=t2;
+			}
+			n++;
+
+		}
+	//allout.println("Maximum Count is"+freq);
+	}
+	catch(Exception e)
+	{
+		//allout.println("Exception inside find max"+e);
+	}
+		return freq;
+	}	
+		
+//function to find the frequently occurring words in the doc
+				
+public void getfow(float freq)
+	{
+		
+		int n=0,ind;
+		
+		//allout.println("Inside find get FOW"+freq);
+		
+		try
+		{
+			
+		
+		while(n<termfreqct.size())
+		{
+			float t2=((Float)( termfreqct.get(n))).floatValue();
+			if(freq==t2)
+			{
+				//allout.println("Success");
+				ind=n;
+				String temp= root.get(ind).toString();
+				termfreqct.set(ind,new Float(0));
+				if(temp.equals("count"))
+				{
+					
+				}
+				else
+				{
+					impwords.add(temp);
+					//allout.println(temp);
+					//allout.println(ind);
+					//ps4.println("Word"+temp);
+					//ps4.println("Term Freq"+freq);
+				}
+				
+			}
+			n++;
+
+		}
+		
+		////System.out.println("number of frequently occuring words"+impwords.size());
+		}
+		catch(Exception e)	 	
+		{
+			//allout.println("Exception inside getFow"+e);
+		}
+	}
+
+
+
+
+//function to get the sentence in which the FOW occurs
+
+	public void getfowsent(String filename)
+	{	
+	try
+	{
+	
+		int i=0;
+		int total_pos;
+		
+		
+		StringBuffer sbuf=new StringBuffer();
+		
+		//allout.println("Inside get FOW sentences");
+		
+		total_pos = po_st.size();
+		
+		while(i < total_pos)
+		{
+			String st=po_st.get(i).toString().trim();
+			int cnt=0,flag=0;
+
+			while(cnt<impwords.size())
+			{
+				String temp=impwords.get(cnt).toString().trim();
+			
+				if(st.indexOf(temp)!=-1)
+				{
+					flag++;
+				}
+				cnt++;
+			}			
+			if(flag>0 )
+			{				
+				sbuf.append(st+"/");			
+				}
+			i++;
+		}
+		
+		if(sbuf!=null)
+		{
+			String prefix = "";
+			String fn="./resource/unl/ExtText/"+filename;
+			File f_w = new File(fn);
+			////System.out.println(fn);
+			String fn1 =  "./resource/unl/ExtText/" +filename.substring(0,filename.lastIndexOf("/"));
+			File f_f = new File(fn1);
+			String fn2 = fn1+"/"+prefix+f_w.getName();
+			////System.out.println(f_f.mkdir());
+			ps2 = new PrintStream(new FileOutputStream(new File(fn2),false));	
+			StringTokenizer strToken1 = new StringTokenizer(sbuf.toString(),"/",false);
+			////System.out.println("No of Elts in Sentence Arrray List"+sent.size());
+	 		//allout.println("No of Elts in Important Sentences "+strToken1.countTokens());
+	 		//ps4.println("No of Elts in Important Sentences "+strToken1.countTokens());
+	 		total_imp_pos = strToken1.countTokens();
+	 		
+			while (strToken1.hasMoreTokens())
+				{
+					String word = strToken1.nextToken()+".";
+					ps2.println(word);
+				}
+				
+				ps2.close();
+
+								
+	 	}
+	 		 	
+	 	}
+	 	catch(Exception e)
+	 	{ 	 	
+	 		//ps4.println("Exception inside Freq sentences"+e);
+	 	}
+ 	 
+	} 	
+/**public void main(String args[])
+{
+new SentExtr();
+
+}*/
+				
+}

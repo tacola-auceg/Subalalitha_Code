@@ -1,0 +1,356 @@
+import java.util.ArrayList;
+
+
+public class WordSense {
+	
+	public String Process(String pentry, String nentry){
+		
+	}
+	public void NoRules(String sword) {
+		// int i=0;
+
+		for (int i = 0; i < rootlist.size(); i++) {
+			// i = rootlist.indexOf(sword);
+			if (sword.equals(rootlist.get(i).toString())) {
+				fentry.add(sword);
+				fentry.add(hwlist.get(i).toString());
+				fentry.add(uwlist.get(i).toString());
+				// break;
+			}
+		}
+	}
+
+	public void VerbRule(String sword) {
+		// int j = 0;
+		for (int i = 0; i < rootlist.size(); i++) {
+			// ////////System.out.println("VerbRule");
+			rootentry = rootlist.get(i).toString();
+			if (rootentry.equals(sword)) {
+				int j = rootlist.indexOf(sword);
+				uwentry = uwlist.get(j).toString();
+				if (uwentry.contains("action")) {
+					// ////////System.out.println("Verb Sense:"+uwentry);
+					fentry.add(sword);
+					fentry.add(hwlist.get(j).toString());
+					fentry.add(uwlist.get(j).toString());
+				}
+			}
+		}
+	}
+
+	public void NumberSense(String sword) {
+		int ind = rootlist.indexOf(sword);
+		for (int i = ind; i < uwlist.size(); i++) {
+			// ////System.out.println("NumberRule");
+			uwentry = uwlist.get(i).toString();
+			if (uwentry.contains("number")) {
+				// ////System.out.println("Number Sense:"+uwentry);
+				fentry.add(sword);
+				fentry.add(hwlist.get(i).toString());
+				fentry.add(uwentry);
+			}
+		}// ////System.out.println("NumberRule fentry:"+fentry);
+	}
+
+	public void NotNumberSense(String sword) {
+		int ind = rootlist.indexOf(sword);
+		if (!(uwlist.get(ind).toString().contains("number"))) {
+			if (!(uwlist.get(ind + 1).toString().contains("number"))) {
+				// ////////System.out.println("NotNumberSense:"+sword);
+				fentry.add(sword);
+				fentry.add(hwlist.get(ind).toString());
+				fentry.add(uwlist.get(ind).toString());
+			}
+		}
+	}
+
+	public void PositionSense(String sword) {
+		int ind = rootlist.indexOf(sword);
+		for (int i = ind; i < uwlist.size(); i++) {
+			uwentry = uwlist.get(i).toString();
+			if (uwentry.contains("position")) {
+				// ////////System.out.println("Position Sense:"+uwentry);
+				fentry.add(sword);
+				fentry.add(hwlist.get(i).toString());
+				fentry.add(uwentry);
+			}
+		}
+	}
+
+	public void OfferSense(String sword) {
+		int ind = rootlist.indexOf(sword);
+		for (int i = ind; i < uwlist.size(); i++) {
+			uwentry = uwlist.get(i).toString();
+			if ((uwentry.contains("offer")) || (uwentry.contains("food"))
+					|| (uwentry.contains("fruit"))) {
+				// ////////System.out.println("Offer Sense:"+uwentry);
+				fentry.add(sword);
+				fentry.add(hwlist.get(i).toString());
+				fentry.add(uwentry);
+			}
+		}
+	}
+
+	public void PlaceSense(String sword) {
+		for (int i = 0; i < uwlist.size(); i++) {
+			uwentry = uwlist.get(i).toString();
+			hwentry = hwlist.get(i).toString();
+			if ((uwentry.contains("money")) || (uwentry.contains("river"))
+					|| (uwentry.contains("person"))
+					|| (uwentry.contains("weapon"))
+					|| (hwentry.contains("place"))) {
+				// ////////System.out.println("Offer Sense:"+uwentry);
+				fentry.add(sword);
+				fentry.add(hwlist.get(i).toString());
+				fentry.add(uwlist.get(i).toString());
+			}
+		}
+	}
+
+	public void MonthSense(String sword) {
+		for (int i = 0; i < uwlist.size(); i++) {
+			uwentry = uwlist.get(i).toString();
+			if (uwentry.contains("date")) { // || (uwentry.contains("day")) ){
+				// ////////System.out.println("month Sense:"+uwentry);
+				fentry.add(sword);
+				fentry.add(hwlist.get(i).toString());
+				fentry.add(uwentry);
+			}
+		}
+	}
+
+	public void RiverSense(String sword) {
+		// System.out.println("INSIDE RIVER");
+		int ind = rootlist.indexOf(sword);
+		for (int i = ind; i < uwlist.size(); i++) {
+			uwentry = uwlist.get(i).toString();
+			// System.out.println("INSIDE RIVER uwEntry:"+uwentry);
+			if ((uwentry.contains("natural world"))
+					|| (uwentry.contains("day"))) {
+				// System.out.println("river Sense:"+uwentry);
+				fentry.add(sword);
+				fentry.add(hwlist.get(i).toString());
+				fentry.add(uwentry);
+				break;
+			}
+		}// System.out.println("RIVER fentry:"+fentry);
+	}
+
+	public void UnitSense(String sword) {
+		int k = rootlist.indexOf(sword);
+		// //System.out.println("Unit K:"+k);
+		for (int i = k; i < uwlist.size(); i++) {
+			uwentry = uwlist.get(i).toString();
+			hwentry = hwlist.get(i).toString();
+			if ((uwentry.contains("unit")) || (uwentry.contains("number"))
+					|| (uwentry.contains("measurement"))
+					|| (uwentry.contains("time"))
+					|| (uwentry.contains("mountain"))
+					|| (hwentry.contains("first"))) {
+				// //System.out.println("unit Sense:"+uwentry);
+				fentry.add(sword);
+				fentry.add(hwlist.get(i).toString());
+				fentry.add(uwentry);
+			}
+		}
+	}
+
+	public void StyleSense(String sword) {
+		// ////////System.out.println("Sword::uwentry:"+sword);
+		int ind = rootlist.indexOf(sword);
+		for (int i = ind; i < uwlist.size(); i++) {
+			uwentry = uwlist.get(i).toString();
+			if ((uwentry.contains("style")) || (uwentry.contains("number"))
+					|| (uwentry.contains("book"))
+					|| (uwentry.contains("document"))) {
+				// ////////System.out.println("style or number Sense:"+uwentry);
+				fentry.add(sword);
+				fentry.add(hwlist.get(i).toString());
+				fentry.add(uwentry);
+			}
+		}
+	}
+
+	public void GodPersonSense(String sword) {
+		int ind = rootlist.indexOf(sword);
+		for (int i = ind; i < uwlist.size(); i++) {
+			uwentry = uwlist.get(i).toString();
+			// int ind = rootlist.indexOf(sword);
+			if ((uwentry.contains("god")) || (uwentry.contains("goddess"))) {
+				// //System.out.println("god Sense:"+uwentry);
+				fentry.add(sword);
+				fentry.add(hwlist.get(i).toString());
+				fentry.add(uwlist.get(i).toString());
+			}
+		}
+	}
+
+	public void PersonSense(String sword) {
+		int ind = rootlist.indexOf(sword);
+		for (int i = ind; i < uwlist.size(); i++) {
+			uwentry = uwlist.get(i).toString();
+			// int ind = rootlist.indexOf(sword);
+			if (uwentry.contains("person")) {
+				// //System.out.println("person Sense:"+uwentry);
+				fentry.add(sword);
+				fentry.add(hwlist.get(i).toString());
+				fentry.add(uwlist.get(i).toString());
+
+			}
+		}
+	}
+
+	public void ColorSense(String sword) {
+		int ind = rootlist.indexOf(sword);
+		for (int i = ind; i < uwlist.size(); i++) {
+			uwentry = uwlist.get(i).toString();
+			if (uwentry.contains("color")) {
+				// ////////System.out.println("color Sense:"+uwentry);
+				fentry.add(sword);
+				fentry.add(hwlist.get(i).toString());
+				fentry.add(uwentry);
+			}
+		}
+	}
+
+	public void MetalSense(String sword) {
+		int ind = rootlist.indexOf(sword);
+		for (int i = ind; i < uwlist.size(); i++) {
+			uwentry = uwlist.get(i).toString();
+			if (uwentry.contains("metal")) {
+				// ////////System.out.println("color Sense:"+uwentry);
+				fentry.add(sword);
+				fentry.add(hwlist.get(i).toString());
+				fentry.add(uwentry);
+			}
+		}
+	}
+
+	public void getFirsthit(String sword) {
+		int hc = sword.hashCode();
+		// ////////System.out.println("Inside getFirsthhit");
+		if ((bn = dict.search(hc)) != null) {
+			fentry.add(sword);
+			fentry.add(bn.headword);
+			fentry.add(bn.constraint);
+		}
+	}
+
+	public ArrayList<String> RulesSet(String sword, int j) {
+
+		int k = j;
+
+		curranal = anal.get(k).toString();
+		if (k > 0) {
+			prevconcept = root.get(k - 1).toString();
+			prevanal = anal.get(k - 1).toString();
+
+			prevhw = hw.get(k - 1).toString();
+			prevuw = uw.get(k - 1).toString();
+		}
+		if (k < (root.size() - 1)) {
+
+			nextanal = anal.get(k + 1).toString();
+			nextconcept = root.get(k + 1).toString();
+			getNextUW();
+		}
+		if (k >= 0) {
+			if (curranal.indexOf("Verb") != -1) {
+				VerbRule(sword);
+			} else if ((prevanal != null) || (prevuw != null)
+					|| (prevconcept != null)) {
+
+				if (prevuw.contains("number")) {
+					RiverSense(sword);
+				} else if ((prevuw.contains("person"))) {
+						if(nextuw.contains("person")){
+							PersonSense(sword);							
+						}else{
+							PersonSense(sword);							
+						}
+				} else if ((prevuw.contains("god"))
+						|| (prevuw.contains("goddess"))) {
+					if ((nextuw.contains("god"))
+							|| (nextuw.contains("goddess"))) {
+							GodPersonSense(sword);
+					}else{
+						GodPersonSense(sword);
+					}
+				} else if ((prevuw.contains("document"))
+						|| (prevuw.contains("book"))
+						|| (prevuw.contains("language"))) {
+					StyleSense(sword);
+				} else if (prevanal.indexOf("ஆவது") != -1) {
+					PositionSense(sword);
+				} else if ((prevuw.indexOf("food") != -1)
+						|| (prevuw.indexOf("fruit") != -1)
+						|| (prevhw.indexOf("fruit") != -1)
+						|| (prevhw.indexOf("food") != -1)) {
+					if ((nextuw.indexOf("food") != -1)
+							|| (nextuw.indexOf("fruit") != -1)
+							|| (nexthw.indexOf("fruit") != -1)
+							|| (nexthw.indexOf("food") != -1)) {
+						OfferSense(sword);
+					}else{	
+						OfferSense(sword);
+					}	
+				} else if ((prevuw.indexOf("metal") != -1)
+						|| (prevhw.indexOf("metal") != -1)) {
+					if ((nextuw.indexOf("metal") != -1)
+							|| (nexthw.indexOf("metal") != -1)) {
+						MetalSense(sword);
+					}else{	
+						MetalSense(sword);
+					}	
+				} else if (prevuw.indexOf("date") != -1) {
+					MonthSense(sword);
+				} else if ((prevanal.indexOf("Numbers") != -1)
+						|| (prevanal.contains("charNumbers"))) {
+					RiverSense(sword);
+					UnitSense(sword);
+				} else if ((prevanal.indexOf("Entity") != -1)
+						|| (prevuw.contains("number"))
+						|| (prevuw.contains("period"))
+						|| (prevuw.contains("building"))
+						|| (prevhw.contains("place"))) {
+					RiverSense(sword);
+					PlaceSense(sword);
+				} else if ((prevuw.contains("color"))) {
+					if ((nextuw.contains("color"))) {
+						ColorSense(sword);
+					} else{
+						ColorSense(sword);
+					}	
+				} else if (prevconcept.equals("பெரிய")) {
+					RiverSense(sword);
+				}
+			} else if(nextanal != null){
+				if (nextanal.contains("Plural Suffix")) {
+
+					NumberSense(sword);
+
+					nextanal = "";
+				}
+			} else {
+				int hc = sword.hashCode();
+
+				if ((bn = dict.search(hc)) != null) {
+					fentry.add(sword);
+					fentry.add(bn.headword);
+					fentry.add(bn.constraint);
+				}
+
+			}
+		}
+		return fentry;
+	}
+	public void getNextUW(){
+		int hc = nextconcept.hashCode();
+		if( (bn = dict.search(hc))!=null){
+			nexthw = bn.headword;
+			nextuw = bn.constraint;
+				
+		}
+	}
+
+}

@@ -1,0 +1,43 @@
+import java.io.*;
+import java.util.*;
+public class CountCRC{
+	public CountCRC(){
+		String str = null;
+		ArrayList al = new ArrayList();
+		int cnt1 = 0,cnt2 = 0,cnt3 = 0,cnt4 = 0,cnt5 = 0;
+		try{
+			BufferedReader in = new BufferedReader(new FileReader("/root/Conto.txt"));
+			while( (str=in.readLine())!=null ){
+				al.add(str);
+			}
+			for(int i=0;i<al.size();i++){
+				String rel = al.get(i).toString();
+				if( (rel.contains("and"))||(rel.contains("plt"))||(rel.contains("bas"))||(rel.contains("cnt"))||(rel.contains("or"))||(rel.contains("seq"))||(rel.contains("coo")) ){
+					cnt1++;					
+				}
+				if( (rel.contains("plf")) ||(rel.contains("src"))||(rel.contains("tmf"))||(rel.contains("agt"))||(rel.contains("ins"))||(rel.contains("met"))||(rel.contains("ben"))||(rel.contains("plt"))||(rel.contains("tmt"))||(rel.contains("gol"))||(rel.contains("obj"))||(rel.contains("man"))||(rel.contains("pur"))||(rel.contains("plc"))||(rel.contains("tim"))||(rel.contains("pof")) ){
+					cnt2++;
+				}
+				if( (rel.contains("ptn"))||(rel.contains("cag")) ){
+					cnt3++;
+				}
+				if( (rel.contains("via"))||(rel.contains("dur"))||(rel.contains("ins"))||(rel.contains("met"))||(rel.contains("per"))||(rel.contains("rsn"))||(rel.contains("tim"))||(rel.contains("aoj"))||(rel.contains("neg"))||(rel.contains("icl"))||(rel.contains("obj"))||(rel.contains("int")) ){
+					cnt4++;				
+				}
+				if( (rel.contains("frm"))||(rel.contains("and"))||(rel.contains("cao"))||(rel.contains("equ"))||(rel.contains("pos"))||(rel.contains("int"))||(rel.contains("man"))||(rel.contains("mod"))||(rel.contains("nam"))||(rel.contains("qua"))||(rel.contains("iof"))||(rel.contains("pof")) ){
+					cnt5++;
+				}
+			}
+			System.out.println("Category1:"+cnt1);
+			System.out.println("Category2:"+cnt2);
+			System.out.println("Category3:"+cnt3);
+			System.out.println("Category4:"+cnt4);
+			System.out.println("Category5:"+cnt5);
+
+		}catch(Exception e){
+		}
+	}
+	public static void main(String args[]){
+		new CountCRC();
+	}
+}

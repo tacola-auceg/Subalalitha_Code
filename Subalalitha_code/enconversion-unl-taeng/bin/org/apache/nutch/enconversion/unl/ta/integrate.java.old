@@ -1,0 +1,60 @@
+package org.apache.nutch.enconversion.unl.ta;
+import org.apache.nutch.unl.UNL;
+import java.lang.*;
+import java.io.*;
+import java.io.FileOutputStream;
+import java.util.*;
+public class integrate implements Serializable
+{
+	public static FinalLLImpl[] ll_new = new FinalLLImpl[20867];
+	public static FinalLLImpl[] ll = new FinalLLImpl[20867];
+	public static void main(String args[])
+	{
+		try
+		{
+			FileInputStream fis=new FileInputStream("./crawl-unl/unlgraph1.txt");
+		 	ObjectInputStream ois1=new ObjectInputStream(fis);					
+         		ll_new=(FinalLLImpl[])ois1.readObject(); 
+			System.out.println("Reading unlgraph1 completed.........");
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+		try
+		{
+			FileInputStream fis1=new FileInputStream("./crawl-unl/unlgraph2.txt");
+			 ObjectInputStream ois1=new ObjectInputStream(fis1);					
+	         	ll=(FinalLLImpl[])ois1.readObject(); 
+			System.out.println("Reading unlgraph2 completed.........");
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+		for(int i=0;i<ll.length;i++)
+		{
+			if(ll[i]!=null)
+			{
+				System.out.println("Object added into "+i+" position");
+				ll_new[i]=ll[i];
+			}
+		}
+		System.out.println("Writing Started......");
+		try
+		{
+			 FileOutputStream fostream=new FileOutputStream("./crawl-unl/unlgraph.txt");
+         		ObjectOutput oostream=new ObjectOutputStream(fostream);
+			//ll=getmultilist();
+         		oostream.writeObject(ll_new);
+			System.out.println("Writing into binary file completed.....");
+        		// oostream.flush(); 
+         		oostream.close();
+			fostream.close();
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+	
+	}
+}

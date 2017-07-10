@@ -1,0 +1,780 @@
+package org.apache.nutch.enconversion.unl.ta;
+
+import org.apache.nutch.analysis.unl.ta.Analyser;
+
+import java.lang.*;
+import java.util.*;
+import java.io.*;
+
+public class SemiRules {
+
+	MWDict mwdict;
+	UWDict uwdict;
+
+	BSTNode bn;
+	BST dict;
+
+	MWBST dict_mw;
+	MWBSTNode bn_mw;
+
+	String result ="";
+	String relnWord;
+	String verbWord;
+
+	int j, total;
+
+	ArrayList<String> abbwords = new ArrayList<String>();
+	ArrayList<String> expwords = new ArrayList<String>();
+
+	ArrayList<String> root;
+	ArrayList<String> rootnew;
+	ArrayList<String> pos;
+	ArrayList<String> caseEndings;
+	ArrayList<String> uw;
+	ArrayList<String> hw;
+	ArrayList<String> anal;
+	ArrayList<String> wordAL;
+	ArrayList<String> unlRelation;
+
+	ArrayList no;
+
+	public SemiRules() {
+		try {
+			dict = new BST();
+			dict_mw = new MWBST();
+
+			mwdict = new MWDict();
+			mwdict.mwbst.inorder();
+
+			uwdict = new UWDict();
+			uwdict.bst.inorder();
+
+			// ws = new WordSense();
+
+			dict = uwdict.bst;
+			dict_mw = mwdict.mwbst;
+
+			bn_mw = new MWBSTNode();
+
+			// centering = new Centering();
+		} catch (Exception e) {
+
+		}
+
+	}
+
+	public void init() {
+		root = new ArrayList<String>();
+		rootnew = new ArrayList<String>();
+		pos = new ArrayList<String>();
+		caseEndings = new ArrayList<String>();
+		uw = new ArrayList<String>();
+		hw = new ArrayList<String>();
+		anal = new ArrayList<String>();
+		wordAL = new ArrayList<String>();
+		unlRelation = new ArrayList<String>();
+
+		no = new ArrayList<String>();
+		
+		relnWord = null;
+		verbWord = null;
+	}
+
+	public String enconvert(String st) {
+		try {
+			init();
+			// System.out.println("ST:"+st);
+			StringBuffer resultuw = new StringBuffer();
+			StringTokenizer strToken1 = new StringTokenizer(st, ", ");
+			int noofwords = strToken1.countTokens();
+			int ctnoofwords = 0;
+			while (ctnoofwords < noofwords) {
+				// System.out.println("Inside While");
+
+				String word = strToken1.nextToken().trim();
+				String pss = "";
+				String word2 = "";
+				String word1 = "";
+				String prev = "", next = "";
+				wordAL.add(word);
+
+				String analysed = org.apache.nutch.analysis.unl.ta.Analyser
+						.analyseF(word, true);
+			//	System.out.println("analysed:" + analysed);
+				StringTokenizer strToken2 = new StringTokenizer(analysed,
+						":\n<>,=•°*;:?-'\"&", false);
+
+				int firstindex = analysed.indexOf('<', analysed.indexOf('>'));
+				// System.out.println("Firstindex:"+firstindex);
+				String analmod = analysed.substring(firstindex);
+				// System.out.println("analmod:"+analmod);
+				anal.add(analmod);
+				if ((analysed.indexOf("unknown") != -1)
+						|| (analysed.indexOf("count=4") != -1)) {
+					word1 = strToken2.nextToken().trim();
+					word2 = word1;
+				/**	if( (word1.length()>1) || (!(word1.contains("Unknown"))) ){
+						word2 = word1;
+					}else{
+						//word1="";
+					}*/
+				//	pos.add("None");
+				//	root.add(word2);
+				//	System.out.println("word1:"+word1);
+				} else if ((analysed.indexOf("Adjectival Noun") != -1)
+						|| (analysed.indexOf("Noun") != -1)
+						|| (analysed.indexOf("Interrogative") != -1)
+						|| (analysed.indexOf("Non Tamil Noun") != -1)
+						|| (analysed.indexOf("Entity") != -1)
+						|| (analysed.indexOf("Adverb") != -1)
+						|| (analysed.indexOf("Numbers") != -1)
+						|| (analysed.indexOf("charNumbers") != -1)
+						|| (analysed.indexOf("DateTime") != -1)
+						|| (analysed.indexOf("Postposition") != -1)
+						|| ((analysed.indexOf("Verb") != -1) && (analysed
+								.indexOf("Finite Verb") == -1))
+						|| (analysed.indexOf("Particle") != -1)
+						|| (analysed.indexOf("Adjective") != -1)){
+					prev = strToken2.nextToken().trim();
+					word1 = prev;
+					next = strToken2.nextToken().trim();
+				}
+				while (strToken2.hasMoreTokens()) {
+					if ((!(next.equals("Adjectival Noun")))
+							&& (!(next.equals("Noun")))
+							&& (!(next.equals("Interrogative Adjective")))
+							&& (!(next.equals("Interrogative Noun")))
+							&& (!(next.equals("Non Tamil Noun")))
+							&& (!(next.equals("Entity")))
+							&& (!(next.equals("Adverb")))
+							&& (!(next.equals("Numbers")))
+							&& (!(next.equals("charNumbers")))
+							&& (!(next.equals("DateTime")))
+							&& (!(next.equals("Postposition")))
+							&& (!(next.equals("Verb")))
+							&& (!(next.equals("Finite Verb")))
+							&& (!(next.equals("Adjective")))
+							&& ((!(next.equals("Particle"))))) {
+						prev = next;
+						next = strToken2.nextToken().trim();
+					} else {
+						break;
+					}
+				}
+				word2 = prev;
+				pss = next;
+				root.add(word2);
+				pos.add(pss);
+				// System.out.println("word2:"+word2+":"+pss);
+				ctnoofwords++;
+			} // end of while
+		//	System.out.println("anal:"+anal.size());
+			findUW();
+			getCaseEndingsandRelations();			
+		//	getRelationswithVerbs();
+			getRelationbetweenConcepts();
+			System.out.println("UNLRELATION:"+unlRelation);
+				
+			for(int k = 0;k<unlRelation.size();k++){
+			//	System.out.println(root.get(k).toString()+"+"+hw.get(k).toString()+"+"+uw.get(k).toString()+"+"+pos.get(k).toString()+"+"+caseEndings.get(k).toString()+"+"+unlRelation.get(k).toString());
+				if (!(rootnew.get(k).equals("None"))) {
+				  
+					resultuw.append(rootnew.get(k).toString() + '+');
+					resultuw.append(hw.get(k).toString() + '+');
+					resultuw.append(uw.get(k).toString() + '+');
+				    resultuw.append(pos.get(k).toString() + '+');
+				    resultuw.append(caseEndings.get(k).toString() + '+'); 
+				    resultuw.append(unlRelation.get(k).toString()+' '); 
+				} 
+			}	
+			result += "<"; 
+			result += resultuw; 
+			result += "/>\n";
+			
+			System.out.println("UNLRELATION:"+result);
+		} catch (Exception e) {
+
+		}
+		return result;
+	}
+
+	public void findUW() {
+
+		int count = 1;
+		int cnt = 0;
+		// String pnentry=null;
+		String rword = "";
+		// ArrayList<String> te = new ArrayList<String>();
+		// StringBuffer sb = new StringBuffer();
+		// StringBuffer resultuw = new StringBuffer();
+		int j = 0, total;
+		// System.out.println("SIZE OF ROOT IN FINDUW:"+root.size());
+		try {
+			total = root.size();
+			while (j < total) {
+
+				bn = new BSTNode();
+
+				rword = root.get(j).toString().trim();
+				// System.out.println("RWORD:"+rword);
+				int hc = rword.hashCode();
+
+				// int cindex = tempcmtw.indexOf(rword);
+
+				if ((bn = dict.search(hc)) != null) {
+					hw.add(bn.headword);
+					uw.add(bn.constraint);
+					no.add(new Integer(count++));
+					rootnew.add(rword);
+				} else if (pos.get(j).equals("Numbers")) {
+
+					hw.add(rword);
+					uw.add("icl>number");
+					no.add(new Integer(count++));
+					rootnew.add(rword);
+				} else {
+					rootnew.add("None");
+					hw.add("None");
+					uw.add("None");
+					no.add("None");
+				}
+				j++;
+			} // end of while
+		//	System.out.println("root:" + root+":"+root.size());
+		//	System.out.println("pos:" + pos+":"+pos.size());					
+		} catch (Exception e) {
+		}
+
+	}
+	public void getRelationbetweenConcepts(){
+		int j = pos.size();
+		String concat = "";
+		String relnWord = "";
+		String posWord = "";
+		String relnexist = "";
+		String reln1 = "";
+		int i = 0;
+		while(i < j){			
+			posWord = pos.get(i).toString();
+			if(posWord.contains("Verb")){
+				String verbReln = unlRelation.get(i).toString();
+				//		System.out.println("verbReln:"+verbReln);
+						if(verbReln.contains("None")){
+							unlRelation.remove(i);
+							unlRelation.add(i, concat);
+							concat = "";
+						}else{
+							relnexist = unlRelation.get(i).toString();
+							unlRelation.remove(i);
+							unlRelation.add(i,"#"+relnexist+concat);
+							relnexist ="";
+							concat = "";
+						}
+			}else{
+				relnWord = unlRelation.get(i).toString();
+				if( (relnWord.contains("plc")) || (relnWord.contains("plf")) || (relnWord.contains("ben")) || (relnWord.contains("obj")) || (relnWord.contains("plt")) ){
+					concat+="#("+relnWord +")";
+					if(relnWord.contains("plf")){
+						for(int l = 0;l<unlRelation.size();l++){
+							String pltFlag = unlRelation.get(l).toString();
+							if(pltFlag.contains("plt")){
+								String tempReln = pltFlag;
+								unlRelation.remove(l);
+								unlRelation.add(l, tempReln+"(#"+relnWord+")");
+								break;
+							}							
+						}
+					}
+				}else if( (relnWord.equals("pos")) || (relnWord.equals("mod")) ){
+					int k = i+1;
+					reln1 = unlRelation.get(k).toString();
+					if(reln1.contains("None")){
+						unlRelation.remove(k);
+						unlRelation.add(k, relnWord);
+					//	relnWord = "";
+					}else{						
+						unlRelation.remove(k);
+						unlRelation.add(k,reln1+"#"+relnWord);
+						reln1 ="";
+					//	concat = "";
+					}
+				}
+			}
+			i++;
+		}
+	}
+/**	public void getRelationswithVerbs(){
+		int siz = pos.size();	
+		String concat ="";
+		for(int i = 0;i<siz;i++){
+			relnWord = unlRelation.get(i).toString();
+			if( (relnWord.contains("plc")) || (relnWord.contains("plf")) || (relnWord.contains("ben")) || (relnWord.contains("obj")) ){
+				concat+="#"+relnWord;
+		//		System.out.println("relnWord:"+relnWord);				
+			}
+			verbWord = pos.get(i).toString();
+			if(verbWord.contains("Verb")){
+		//		System.out.println("Inside Verb:"+i);
+				String verbReln = unlRelation.get(i).toString();
+		//		System.out.println("verbReln:"+verbReln);
+				if(verbReln.contains("None")){
+					unlRelation.remove(i);
+					unlRelation.add(i, concat);
+					concat = "";
+				}else{
+					String relnexist = unlRelation.get(i).toString();
+					unlRelation.remove(i);
+					unlRelation.add(i,"#"+relnexist+concat);
+				}
+			}			
+		}
+	}
+	public void getRelationbetweenConcepts(){
+		String concat1 = "";
+		String relnLabel = "";
+		for(int j=0;j<unlRelation.size();j++){
+			relnLabel = unlRelation.get(j).toString();
+			if( (relnLabel.contains("pos")) || (relnLabel.contains("mod")) ){
+				String nextReln = unlRelation.get(j+1).toString();
+				if(nextReln.contains("None")){
+					unlRelation.remove(j+1);
+					unlRelation.add(j+1, "#"+relnLabel);
+				}else{
+					String relnexist1 = unlRelation.get(j+1).toString();
+					unlRelation.remove(j+1);
+					unlRelation.add(j,"#"+relnexist1+relnLabel);
+				}
+			}
+		}
+	}*/
+	public void getCaseEndingsandRelations() {
+		j = 0;
+
+		String analysed;
+		String tempword;
+		String u_word;
+		// System.out.println("Anal inside Findrelnindex:"+anal);
+
+	//	String rel_label;
+		String cEndWord = " ";
+		String relnWord = " ";
+
+		total = anal.size();
+		while (j < total) {
+			try {
+				// ////////System.out.println("j:"+j);
+				// rootrel.add("None");
+				analysed = anal.get(j).toString().trim();
+				tempword = root.get(j).toString().trim();
+				u_word = uw.get(j).toString().trim();
+				if (analysed.indexOf("இல்") != -1) {
+					if ((analysed.indexOf("இருந்து") != -1)) {
+						cEndWord = "இல்#இருந்து";
+						relnWord = "plf#frm#tmf#scn";
+						caseEndings.add(cEndWord);
+						unlRelation.add(relnWord);
+					} else if (analysed.indexOf("உள்ள") != -1) {
+						cEndWord = "இல்#உள்ள";
+						relnWord = "mod";
+						caseEndings.add(cEndWord);
+						unlRelation.add(relnWord);
+					} else if (analysed.indexOf("உம்") != -1) {
+						cEndWord = "இல்#உம்";
+						relnWord = "and";
+						caseEndings.add(cEndWord);
+						unlRelation.add(relnWord);
+					} else {
+						cEndWord = "இல்";
+						relnWord = "plc";
+						caseEndings.add(cEndWord);
+						unlRelation.add(relnWord);
+					}
+				} else if (analysed.indexOf("உம்") != -1) {
+					cEndWord = "உம்";
+					relnWord = "and";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if ((analysed.indexOf("படு") != -1)
+						&& (analysed.indexOf("அது") != -1)) {
+					cEndWord = "படு#அது";
+					relnWord = "agt";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if (analysed.indexOf("ஆல்") != -1) {
+					cEndWord = "ஆல்";
+					relnWord = "ins#con";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if (analysed.indexOf("உக்கு") != -1) {
+					if (analysed.indexOf("ஆக") != -1) {
+						cEndWord = "உக்கு#ஆக";
+						relnWord = "ben";
+						caseEndings.add(cEndWord);
+						unlRelation.add(relnWord);
+					}
+				} else if ((analysed.indexOf("உடன்") != -1)
+						|| (analysed.indexOf("ஓடு") != -1)) {
+					cEndWord = "உடன்#ஓடு";
+					relnWord = "cag#cob#coo";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if (analysed.indexOf("க்கு") != -1) {
+					if (analysed.indexOf("உரிய") != -1) {
+						cEndWord = "க்கு#உரிய";
+						relnWord = "pos";
+						caseEndings.add(cEndWord);
+						unlRelation.add(relnWord);
+					} else if (analysed.indexOf("உட்பட்ட") != -1) {
+						cEndWord = "க்கு#உட்பட்ட";
+						relnWord = "icl";
+						caseEndings.add(cEndWord);
+						unlRelation.add(relnWord);
+					} else if (analysed.indexOf("உம்") != -1) {
+						cEndWord = "க்கு#உம்";
+						relnWord = "and";
+						caseEndings.add(cEndWord);
+						unlRelation.add(relnWord);
+					} else {
+						cEndWord = "க்கு";
+						relnWord = "to#plt#tmt";
+						caseEndings.add(cEndWord);
+						unlRelation.add(relnWord);
+					}
+				} else if (analysed.indexOf("ஐ") != -1) {
+					cEndWord = "ஐ";
+					relnWord = "obj";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if (analysed.indexOf("இன்") != -1) {
+					cEndWord = "இன்";
+					relnWord = "pos";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if ((analysed.indexOf("உடைய") != -1)
+						|| (analysed.indexOf("அது") != -1)) {
+					cEndWord = "உடைய#அது";
+					relnWord = "pos";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if ((analysed.indexOf("ஆக") != -1)
+						|| (analysed.indexOf("க்க") != -1)) {
+					cEndWord = "ஆக#க்க";
+					relnWord = "man****";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if ((tempword.equals("உள்ளது"))
+						|| (tempword.equals("இருக்கும்"))
+						|| (tempword.equals("உள்ளன"))
+						|| (tempword.equals("நிறைந்தது"))
+						|| (tempword.equals("ஆகும்"))
+						|| (tempword.equals("உண்டு"))
+						|| (tempword.equals("பற்றி"))
+						|| (tempword.equals("பற்றிய"))
+						|| (analysed.indexOf("உள்ளது") != -1)
+						|| (analysed.indexOf("இருக்கும்") != -1)
+						|| (analysed.indexOf("உள்ளன") != -1)
+						|| (analysed.indexOf("நிறைந்தது") != -1)
+						|| (analysed.indexOf("ஆகும்") != -1)
+						|| (analysed.indexOf("உண்டு") != -1)) {
+					cEndWord = tempword;
+					relnWord = "aoj";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if ((analysed.indexOf("என") != -1)
+						|| (tempword.equals("என"))
+						|| (tempword.equals("என்று"))) {
+					cEndWord = tempword;
+					relnWord = "icl";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if ((tempword.equals("மட்டுமல்லாமல்"))
+						|| (tempword.equals("மற்றும்"))
+						|| (tempword.equals("மேலும்"))) {
+					cEndWord = tempword;
+					relnWord = "and";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+					unlRelation.add(j-1,relnWord);
+					unlRelation.add(j+1,relnWord);
+				} else if (tempword.equals("வழியாக")) {
+					cEndWord = tempword;
+					relnWord = "via";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if ((tempword.equals("காட்டிலும்"))
+						|| (tempword.equals("விட"))) {
+					cEndWord = tempword;
+					relnWord = "bas";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+					unlRelation.add(j-1, relnWord);
+					unlRelation.add(j+1, relnWord);
+				} else if (tempword.equals("என்னும்")) {
+					cEndWord = tempword;
+					relnWord = "equ";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if ((tempword.equals("முதல்"))
+						|| (tempword.equals("இருந்து"))) {
+					cEndWord = tempword;
+					relnWord = "frm#plf#tmf";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+					unlRelation.add(j-1, relnWord);
+				} else if ((tempword.equals("மூலம்"))
+						|| (tempword.equals("வைத்து"))
+						|| (tempword.equals("உபயோகி"))
+						|| (tempword.equals("கொண்டு"))) {
+					cEndWord = tempword;
+					relnWord = "ins";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if (tempword.equals("மிக")) {
+					cEndWord = tempword;
+					relnWord = "man";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if ((tempword.equals("ஆகிய"))
+						|| (tempword.equals("போன்ற"))
+						|| (tempword.equals("முதலிய"))) {
+					cEndWord = tempword;
+					relnWord = "nam";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if (tempword.equals("அதனால்")) {
+					cEndWord = tempword;
+					relnWord = "rsn";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if ((tempword.equals("அப்புறம்"))
+						|| (tempword.equals("முன்னால்"))
+						|| (tempword.equals("பின்னால்"))
+						|| (tempword.equals("பின்னர்"))
+						|| (tempword.equals("பின்பு"))) {
+					cEndWord = tempword;
+					relnWord = "seq";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if ((tempword.equals("ஆம்")) || (tempword.equals("இல்"))
+						|| (tempword.equals("ம்")) || (tempword.equals("ல்"))) {
+					cEndWord = tempword;
+					relnWord = "tim";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if ((tempword.equals("அல்லாத"))
+						|| (tempword.equals("நீங்கலாக"))) {
+					cEndWord = tempword;
+					relnWord = "neg";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if (tempword.equals("என்பது")) {
+					cEndWord = tempword;
+					relnWord = "cnt";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if ((tempword.equals("கொண்டே"))
+						|| (tempword.equals("அதேவேளை"))) {
+					cEndWord = tempword;
+					relnWord = "man****";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if ((tempword.equals("பொழுது"))
+						|| (tempword.equals("போது"))) {
+					cEndWord = tempword;
+					relnWord = "dur";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if (tempword.equals("வரை")) {
+					cEndWord = tempword;
+					relnWord = "to#plt#tmt";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+					unlRelation.add(j-1, relnWord);
+				} else if (((analysed.indexOf("இங்கு") != -1) || (analysed
+						.indexOf("அங்கு") != -1))) {
+					cEndWord = "இங்கு";
+					relnWord = "plc";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if (tempword.indexOf("பொது") != -1) {
+					cEndWord = tempword;
+					relnWord = "and****";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if (((analysed.indexOf("இங்கு") == -1))
+						&& (analysed.indexOf("Adverb") != -1)) {
+					cEndWord = "இங்கு#Adverb";
+					relnWord = "plc";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if ((analysed.indexOf("Adjective") != -1)
+						|| (analysed.indexOf("Adjectival Suffix") != -1)
+						|| (analysed.indexOf("Adjectival Noun") != -1)) {
+					cEndWord = "None";
+					relnWord = "mod";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if (tempword.equals("அல்லது")) {
+					cEndWord = tempword;
+					relnWord = "or";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+					unlRelation.add(j-1,relnWord);
+					unlRelation.add(j+1,relnWord);
+				} else if (tempword.equals("முறை")) {
+					cEndWord = tempword;
+					relnWord = "and****";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if (tempword.equals("நிறைய")) {
+					cEndWord = tempword;
+					relnWord = "qua";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				}else if ((tempword.equals("நாடு")) || (tempword.equals("மாவட்டம்"))
+						|| (tempword.equals("நகரம்"))
+						|| (tempword.equals("மாநிலம்"))
+						|| (tempword.equals("நதி")) || (tempword.equals("ஏரி"))
+						|| (tempword.equals("பாலம்"))) {
+					cEndWord = tempword;
+					relnWord = "iof";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if ((tempword.equals("உடல்"))
+						|| (tempword.equals("மரம்"))) {
+					cEndWord = tempword;
+					relnWord = "icl****";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if ((tempword.equals("உள்ளிட்ட"))
+						|| (tempword.equals("உள்பட"))
+						|| (tempword.equals("உட்பட"))) {
+					cEndWord = tempword;
+					relnWord = "icl";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if ((tempword.equals("இடையில்"))
+						|| (tempword.equals("இடையே"))) {
+					cEndWord = tempword;
+					relnWord = "int";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if (tempword.equals("போதிலும்")) {
+					cEndWord = "போதிலும்";
+					relnWord = "and****";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				} else if (tempword.equals("உள்ள")) {
+					cEndWord = "உள்ள";
+					relnWord = "mod";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				}else if (u_word.contains("person")){
+					cEndWord = "None";
+					relnWord = "agt";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				}else if( (u_word.contains("place")) || (u_word.contains("country")) || (u_word.contains("region")) || (u_word.contains("continent")) || (u_word.contains("city")) ){
+					cEndWord = "None";
+					relnWord = "plc";
+					caseEndings.add(cEndWord);
+					unlRelation.add(relnWord);
+				}
+				else{
+					caseEndings.add("None");
+					unlRelation.add("None");
+				}
+			} catch (Exception e) {
+			}
+			j++;
+		}
+		j = 0;
+	//	System.out.println("CaseEndings:" + caseEndings +":"+caseEndings.size());
+		System.out.println("unlRelation:" + unlRelation+":"+unlRelation.size());
+	}
+
+	/**
+	 * public void getCaseEndings(){ String analword = null; String concatSuffix =
+	 * null; StringTokenizer strToken3 = null; try{ int i =0; int j =
+	 * anal.size(); while(i<j){ analword = anal.get(i).toString();
+	 * System.out.println("analword:"+analword); strToken3 = new
+	 * StringTokenizer(analword," "); while(strToken3.hasMoreTokens()){ String
+	 * cend1 = strToken3.nextToken(">"); System.out.println("cend1:"+cend1); if
+	 * ((cend1.contains("500")) || (cend1.contains("501")) ||
+	 * (cend1.contains("502")) || (cend1.contains("504")) ||
+	 * (cend1.contains("506")) || (cend1.contains("600")) ||
+	 * (cend1.contains("601")) || (cend1.contains("602")) ||
+	 * (cend1.contains("604")) || (cend1.contains("201")) ||
+	 * (cend1.contains("903")) || (cend1.contains("1402")) ||
+	 * (cend1.contains("1403")) || (cend1.contains("1501")) ||
+	 * (cend1.contains("Clitic"))) { StringTokenizer strToken4 = new
+	 * StringTokenizer(cend1,"<"); String caseSuffix1 =
+	 * strToken4.nextToken().trim(); if(cend1.contains("201")){
+	 *  } concatSuffix = caseSuffix1; caseEndings.add(caseSuffix1); } } i++; }
+	 * }catch(Exception e){
+	 *  } }
+	 */
+
+	public void loadequ() {
+		String equentry = "";
+		try {
+			BufferedReader in = new BufferedReader(new FileReader(
+					"./resource/unl/equ.txt"));
+			while ((equentry = in.readLine()) != null) {
+				StringTokenizer tok = new StringTokenizer(equentry, "/");
+				abbwords.add(tok.nextToken());
+				expwords.add(tok.nextToken());
+			}
+			in.close();
+		} catch (Exception e) {
+
+		}
+
+	}
+
+	public static void main(String args[]) {
+
+		SemiRules r = new SemiRules();
+		String s = null;
+		FileReader fr = null;
+		String temp = null;
+		String str = "";
+		String sent = "", recv = "", token = "", fn = "";
+		int temp1 = 0, j = 0;
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(
+					"./resource/unl/seinput.txt"));
+			while ((s = br.readLine()) != null) {
+				fn = "./resource/unl/ta/Enconversion/" + s;
+				System.out.println("fn:" + fn);
+				StringBuffer docbuff = new StringBuffer();
+				fr = new FileReader(fn);
+				// System.out.println("fr:"+fr);
+				StreamTokenizer st = new StreamTokenizer(fr);
+
+				while (st.nextToken() != st.TT_EOF) {
+					temp = "";
+					temp1 = 0;
+					if (st.ttype == st.TT_WORD)
+						temp = st.sval;
+					else if (st.ttype == st.TT_NUMBER) {
+						temp1 = (int) st.nval;
+						temp = Integer.toString(temp1);
+					}
+					if (temp != null)
+						docbuff.append(temp + " ");
+				}
+				// System.out.println("docbuff:"+docbuff);
+				StringTokenizer sentToken1 = new StringTokenizer(docbuff
+						.toString().trim(), ".", false);
+				j = 0;
+				while (sentToken1.hasMoreTokens()) {
+					sent = sentToken1.nextToken();
+					recv = r.enconvert(sent);
+				}
+			}
+		} catch (Exception e) {
+
+		}
+	}
+}
